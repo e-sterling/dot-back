@@ -1,0 +1,11 @@
+[package]
+name = "dot-back"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+figment = { version = "0.10", features = ["toml", "env"] }
+serde = { version = "1.0", features = ["derive"] }
+rustypath = "1.0.1"
+clap = { version = "4.5.16", features = ["derive", "wrap_help"] }
+

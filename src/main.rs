@@ -1,57 +1,33 @@
-use clap::{Parser, Subcommand};
 use std::env;
+use std::path::PathBuf;
+use homedir::my_home;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None, arg_required_else_help = true)]
-struct Args {
-    #[command(subcommand)]
-    command: Option<Commands>,
-
-    /// Level of verbosity
-    #[arg(short, long)]
-    verbose: bool,
-}
-
-#[derive(Subcommand, Debug)]
-enum Commands {
-    #[command(arg_required_else_help = true)]
-    Backup {
-        /// Location of dot-files (defaults to user home directory)
-        #[arg(short = 's', long, required = true, value_hint = clap::ValueHint::DirPath)]
-        source: String,
-
-        /// Where to store backup vault
-        #[arg(short = 'd', long, required = true)]
-        destination: String,
-
-        /// What storage backend is required
-        #[arg(short = 't', long, required = true, value_names = ["file", "null"])]
-        dest_type: String,
-    },
-
-    #[command(arg_required_else_help = true)]
-    Restore {
-        /// Location of your backup vault (i.e. the "destination" of the backup job)
-        #[arg(short = 's', long, required = true)]
-        source: String,
-
-        /// What storage backend is required
-        #[arg(short = 't', long, required = true, value_names = ["file"])]
-        source_type: String,
-
-        /// Where to restore the backup (i.e. the "source" of the backup job)
-        #[arg(short = 'd', long, required = true)]
-        destination: String,
-    },
+#[derive(Debug)]
+struct AppConfig {
+    backup_dest: PathBuf,
+    backup_type: String,
 }
 
 fn main() {
-    // let app_config: AppConfig =
-    //     dot_back::config_handler::load().expect("Unable to create application config");
-    // println!("{:#?}", app_config);
+    
+    let mut app_config = AppConfig {
+        backup_dest: my_home()
+            .expect("Unable to locate home directory")
+            .expect("Error reading home directory"),
+        backup_type: String::from("file"),
+    };
 
-    let cli = Args::parse();
+    let mut args = env::args().skip(1).peekable();
+    while let Some(arg) = args.next() {
+        match &arg[..] {
+            "-b" | "--backup" => {
+                if let Some(cmd_dst) = args.peek() {
+                    app_config.backup_dest = PathBuf::from(cmd_dst);
+                }
+            }
+            _ => (),
+        }
+    }
 
-    //  dot_back::backup::run(app_config);
+    dbg!(app_config);
 }
